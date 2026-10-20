@@ -1,0 +1,19 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PaperView
+GenericName=PDF Reader
+Comment=High-performance modern desktop PDF reader with native annotation and editing
+Exec=paperview %U
+Icon=paperview
+Terminal=false
+StartupNotify=true
+StartupWMClass=PaperView
+Categories=Office;Viewer;
+MimeType=application/pdf;application/x-pdf;application/x-bzpdf;application/x-gzpdf;
+Keywords=PDF;Reader;Viewer;Document;Annotation;Form;Signature;
+Actions=NewWindow;
+
+[Desktop Action NewWindow]
+Name=Open New Window
+Exec=paperview

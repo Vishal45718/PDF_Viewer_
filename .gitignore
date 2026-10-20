@@ -1,0 +1,36 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+.DS_Store
+*.tmp
+.env
+.backups_m6/
+
+# PyInstaller / Build Artifacts
+build/
+dist/
+*.spec
+
+# Generated test files and exports
+/artifacts/
+annotated_test.pdf
+app_large_test.png
+app_smoke_test.png
+export_merged.pdf
+export_page.html
+export_page1.jpg
+export_page1.png
+export_page1.svg
+export_page1.xml
+export_page1_only.pdf
+export_text.txt
+page0_preview.png
+redacted_watermarked.pdf
