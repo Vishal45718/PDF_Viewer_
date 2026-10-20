@@ -166,6 +166,7 @@ class DocumentManager:
         self._page_count: int = 0
         self._words_cache: Dict[int, List[Tuple]] = {}
         self._is_modified: bool = False
+        self._is_encrypted: bool = False
         self._undo_stack: List[bytes] = []
         self._redo_stack: List[bytes] = []
         self._undo_max: int = 20
@@ -203,6 +204,7 @@ class DocumentManager:
         except Exception as e:
             raise DocumentError(f"Failed to open document: {e}") from e
 
+        was_encrypted = bool(doc.is_encrypted)
         if doc.is_encrypted:
             if doc.needs_pass:
                 if password is None:
@@ -218,6 +220,7 @@ class DocumentManager:
         self._page_count = doc.page_count
         self._words_cache: Dict[int, List[Tuple]] = {}
         self._is_modified: bool = False
+        self._is_encrypted: bool = was_encrypted
 
         return self.get_metadata()
 
@@ -234,6 +237,7 @@ class DocumentManager:
             self._page_count = 0
             self._words_cache.clear()
             self._is_modified = False
+            self._is_encrypted = False
             self._undo_stack.clear()
             self._redo_stack.clear()
 
@@ -273,7 +277,7 @@ class DocumentManager:
             modification_date=md.get("modDate") or "",
             format_version=fmt,
             page_count=self._page_count,
-            is_encrypted=self._doc.is_encrypted,
+            is_encrypted=self._is_encrypted,
             permissions=self._doc.permissions,
             file_size_bytes=file_size,
             file_path=str(self._file_path) if self._file_path else "",

@@ -4,6 +4,7 @@ Assembles the grouped modern Toolbar, Sidebar, DocumentViewer, SearchBar, and St
 Handles drag-and-drop, native file pickers, keyboard shortcuts, annotations, view modes, and state.
 """
 
+import sys
 from pathlib import Path
 from typing import Any, List, Optional
 import pymupdf
@@ -872,6 +873,7 @@ class MainWindow(QMainWindow):
             path_str = QUrl(path_str).toLocalFile()
         p = Path(path_str).expanduser().resolve()
         if not p.is_file():
+            sys.stderr.write(f"[PaperView Error] File not found: {p}\n")
             QMessageBox.critical(self, "Error", f"File not found:\n{p}")
             return
 
@@ -897,6 +899,7 @@ class MainWindow(QMainWindow):
                     self.status_label.setText("Open cancelled.")
                     return
             except Exception as e:
+                sys.stderr.write(f"[PaperView Error] Failed to open document {p}: {e}\n")
                 QMessageBox.critical(self, "Failed to Open PDF", f"Error opening document:\n{e}")
                 self.status_label.setText("Failed to open document.")
                 return

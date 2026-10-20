@@ -17,7 +17,7 @@ if [ ! -d "$DIST_DIR" ] || [ ! -x "$DIST_DIR/paperview" ]; then
     exit 1
 fi
 
-PREFIX="${XDG_DATA_HOME:-$HOME/.local}"
+PREFIX="${PAPERVIEW_PREFIX:-$HOME/.local}"
 LIB_DIR="$PREFIX/lib/paperview"
 BIN_DIR="$HOME/.local/bin"
 APP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"

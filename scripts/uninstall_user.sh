@@ -5,7 +5,7 @@
 # ==============================================================================
 set -euo pipefail
 
-PREFIX="${XDG_DATA_HOME:-$HOME/.local}"
+PREFIX="${PAPERVIEW_PREFIX:-$HOME/.local}"
 LIB_DIR="$PREFIX/lib/paperview"
 BIN_FILE="$HOME/.local/bin/paperview"
 APP_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/applications/paperview.desktop"
@@ -16,6 +16,13 @@ echo "=== Uninstalling PaperView from $HOME/.local ==="
 if [ -d "$LIB_DIR" ]; then
     echo "Removing $LIB_DIR..."
     rm -rf "$LIB_DIR"
+fi
+
+# Clean up legacy library path if previously installed there
+LEGACY_LIB="${XDG_DATA_HOME:-$HOME/.local/share}/lib/paperview"
+if [ -d "$LEGACY_LIB" ]; then
+    echo "Removing legacy library directory $LEGACY_LIB..."
+    rm -rf "$LEGACY_LIB"
 fi
 
 if [ -L "$BIN_FILE" ] || [ -f "$BIN_FILE" ]; then

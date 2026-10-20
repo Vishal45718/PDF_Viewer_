@@ -217,7 +217,7 @@ A modern, responsive desktop PDF reader built with Python, PySide6 (Qt), and PyM
    - Password-protected documents prompt for user passwords and handle incorrect entries gracefully.
    - `Save Copy As` protects the original file: explicitly blocks attempts to overwrite the active source document directly and preserves original source byte integrity.
 7. **Comprehensive Automated Test Coverage**:
-   - Full automated test suite expanded to **148 passed tests** (100% pass rate).
+   - Full automated test suite expanded to **159 passed tests** (100% pass rate).
 
 ---
 
@@ -257,7 +257,8 @@ pdf_viewer/
 │   ├── test_milestone4.py       # Forms, redaction, visible signatures, rubber stamps, dialogs tests
 │   ├── test_milestone5.py       # Undo/redo, crop, labels, headers/footers, export, image extraction, attachments, bookmarks, metadata, security, dialogs tests
 │   ├── test_milestone6.py       # High-DPI rendering, DPR scaling, cache isolation, stale render rejection, coordinate mapping, atomic save validation
-│   └── test_milestone7.py       # Packaging validation, desktop entry, icon assets, CLI paths, source protection, About dialog tests
+│   ├── test_milestone7.py       # Packaging validation, desktop entry, icon assets, CLI paths, source protection, About dialog tests
+│   └── test_milestone8.py       # Release candidate audit, packaged binary smoke, desktop integration audit, source protection, permanent redactions
 ├── dist/                        # Standalone build output directory (ignored by git)
 │   └── paperview/               # Standalone one-dir application bundle
 ├── run.sh                       # One-click development execution script
@@ -376,7 +377,7 @@ Before release, verify:
    ```bash
    .venv/bin/python -m pytest -v
    ```
-   All 148 tests must pass with 100% success rate.
+   All 159 tests must pass with 100% success rate.
 2. **Bytecode Compilation**:
    ```bash
    .venv/bin/python -m compileall paperview
@@ -412,7 +413,7 @@ Execute the automated test suite with pytest:
 source .venv/bin/activate
 pytest -v
 ```
-All **148 tests** across all 7 milestones (core viewing, text selection & annotations, document reorganization, merge, split, watermark, optimization, AcroForms, permanent redaction, visible signatures, rubber stamps, undo/redo, crop, page labels, headers/footers, export, image extraction, attachments, bookmarks, metadata editing, security, high-DPI rendering, DPR scaling, cache isolation, atomic save validation, standalone packaging, desktop integration, and error resilience) pass cleanly with 100% success rate.
+All **159 tests** across all 8 milestones (core viewing, text selection & annotations, document reorganization, merge, split, watermark, optimization, AcroForms, permanent redaction, visible signatures, rubber stamps, undo/redo, crop, page labels, headers/footers, export, image extraction, attachments, bookmarks, metadata editing, security, high-DPI rendering, DPR scaling, cache isolation, atomic save validation, standalone packaging, desktop integration, error resilience, and release candidate audit) pass cleanly with 100% success rate.
 
 ---
 

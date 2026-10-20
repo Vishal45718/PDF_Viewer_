@@ -63,6 +63,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         print_help()
         return 0
 
+    # Check for unrecognized options
+    unrecognized = [arg for arg in args if arg.startswith("-")]
+    if unrecognized:
+        sys.stderr.write(f"paperview: unrecognized option '{unrecognized[0]}'\n")
+        sys.stderr.write("Try 'paperview --help' for more information.\n")
+        return 2
+
     # Extract target file path (first positional argument not starting with '-')
     initial_file: Optional[str] = None
     for arg in args:
