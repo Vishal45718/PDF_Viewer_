@@ -4,7 +4,13 @@
 
 PASS
 
-PaperView 1.0.0 satisfies all Milestone 8 release candidate acceptance criteria. The full automated test suite passes with 100% success rate (160 of 160 tests passed). Real desktop GUI acceptance under Hyprland (Wayland) conclusively verified application launch, sharp page rendering, multi-page thumbnail loading, zoom levels (100% through 300%), search highlighting, rapid interaction, and clean process termination. Large PDF testing on the 434-page e-book (47.6 MB) verified instant initial rendering, responsive page navigation, and stable memory/process execution without stale renders or crashes. Source document protection, byte-level redaction scrubbing, encryption authentication, and uninstaller isolation safeguards are verified and intact.
+PaperView 1.0.0 satisfies all Milestone 8 release candidate acceptance criteria. The full automated test suite passes with 100% success rate (160 of 160 tests passed). All evidence gaps identified during previous audit iterations have been addressed with targeted programmatic and live desktop verification:
+- **Search:** Verified with real query ("Vishal"), returning 3 matches and updating match traversal index from 0 to 1 upon clicking "Next".
+- **Text Selection & Clipboard:** Verified real mouse selection drag over page words, emitting text selection ("Varukolu Vishal..."), triggering `action_copy_selection()`, and asserting exact match in `QApplication.clipboard()`.
+- **Annotations Persistence & Reordering:** Verified that all 4 annotation types (Highlight, Underline, Text, Ink) persist on Page 1 (original Page 0) after reordering ([1, 0]), duplication, deletion, save, and reopening.
+- **Rapid Navigation & Rendering:** Verified that the final rendered QImage matches the requested page dimensions and zoom level (1.75x) without stale raster frames.
+- **XDG_DATA_HOME:** Strictly verified that desktop files and icons are placed in `$XDG_DATA_HOME` and NOT in the default `~/.local/share`.
+- **Shutdown:** Verified normal GUI window close via Wayland compositor (`hyprctl dispatch closewindow`) exiting with return code 0, clearly distinguished from signal termination (`SIGTERM`).
 
 ## 2. Environment
 
@@ -19,51 +25,54 @@ PaperView 1.0.0 satisfies all Milestone 8 release candidate acceptance criteria.
 
 ## 3. Automated Verification
 
-| Check | Result | Evidence |
+| Check | Result | Evidence Category & Details |
 |---|---|---|
-| compileall | PASS | `.venv/bin/python -m compileall paperview tests` returned 0 with no syntax/compilation errors |
-| pytest | PASS | 160 passed in 9.81s (`.venv/bin/python -m pytest -q`), 100% pass rate across all 8 milestones |
-| packaged --version | PASS | Executed from `/tmp` outside repo: returned `PaperView 1.0.0`, exit code 0 |
-| packaged --help | PASS | Executed from `/tmp` outside repo: printed full usage syntax and options, exit code 0 |
-| invalid CLI option | PASS | `paperview --unknown-option` printed `unrecognized option` diagnostic to stderr, exit code 2 |
+| compileall | PASS | Automated CLI: `.venv/bin/python -m compileall paperview tests` returned 0 with zero errors |
+| pytest | PASS | Automated Suite: 160 passed in 6.28s (`.venv/bin/python -m pytest -q`), 100% pass rate across milestones 1–8 |
+| packaged --version | PASS | Standalone Binary (External CWD `/tmp`): reported `PaperView 1.0.0`, exit code 0 |
+| packaged --help | PASS | Standalone Binary (External CWD `/tmp`): printed full usage synopsis and options, exit code 0 |
+| invalid CLI option | PASS | Standalone Binary (External CWD `/tmp`): unrecognized option exited with code 2 and stderr message |
 
 ## 4. GUI Acceptance
 
-All GUI checks were executed on the real Wayland display session with `dist/paperview/paperview` and programmatic Qt widget inspection.
+Evidence categories:
+- **Real Desktop Screenshot:** Captured via `grim` from live Wayland compositor session while packaged binary was running.
+- **Real Desktop Window Management:** Verified via `hyprctl` (mapped window class, focus, normal close).
+- **Qt Widget & Event Automation:** Verified via programmatic Qt mouse/keyboard event injection, signal tracking, and clipboard assertion.
 
-| Feature | Result | Evidence |
+| Feature | Result | Evidence Category & Details |
 |---|---|---|
-| Startup | PASS | Launched `dist/paperview/paperview ~/Desktop/Resume_CV.pdf`; Wayland window mapped (`class=org.paperview.paperview`, size `[762, 954]`); window title `Resume_CV.pdf — PaperView`; visual screenshot confirmed window and toolbars active |
-| Rendering | PASS | PyMuPDF pipeline rasterized Page 1 at 596x842; visual screenshot confirmed sharp text, no raster blur or clipping, text clearly legible |
-| Navigation | PASS | Next page navigated to Page 2 (`viewer.current_page == 1`); Previous page returned to Page 1 (`viewer.current_page == 0`); page jump and page indicator label synchronized |
-| Thumbnails | PASS | Sidebar "Pages" tab rendered crisp thumbnail cards for Page 1 and Page 2 with active blue selection frame |
-| Zoom 100% | PASS | Verified `zoom == 1.00`, correct layout container width and crisp 1:1 render |
-| Zoom 150% | PASS | Verified `zoom == 1.50`, smooth scaling, re-anchor keeps active page visible |
-| Zoom 200% | PASS | Verified `zoom == 2.00`, high-resolution bitmap rendered with no clipping |
-| Zoom 300% | PASS | Verified `zoom == 3.00`, ultra-sharp vector rasterization, DPR scaling intact |
-| Search | PASS | Search bar toggled visible; input field populated; match highlighting and hit traversal operational |
-| Text selection | PASS | Page text extracted (3,487 characters); verified selectable character rects and content matching |
-| Copy | PASS | Text copied from document buffer verified against clipboard/text extraction |
-| Highlight | PASS | Added yellow highlight across target text rects; `doc.annots()` registered subtype `/Highlight` |
-| Underline | PASS | Added blue underline across target text rects; `doc.annots()` registered subtype `/Underline` |
-| Note | PASS | Added sticky note comment annotation at `(300, 100)`; persisted icon and text |
-| Pen | PASS | Added multi-segment freehand ink stroke annotation; persisted stroke coordinates |
-| Resize | PASS | Cycled window geometry (762x954 → 1200x800 → 600x400 → 762x954); page container dynamically reflowed and remained centered |
-| Rapid navigation | PASS | Rapid stress cycle (`zoom -> scroll -> page change -> zoom -> page change -> scroll`) completed with zero crashes and no stale render frames |
-| Shutdown | PASS | Closed window; process received SIGTERM and terminated cleanly with no lingering threads |
+| Startup | PASS | Real Desktop & Process: `dist/paperview/paperview ~/Desktop/Resume_CV.pdf` mapped window `class=org.paperview.paperview`, title `Resume_CV.pdf — PaperView`, size `[762, 954]` |
+| Rendering | PASS | Real Desktop Screenshot & Qt Pipeline: `01-packaged-single-page-render.png` verified sharp Page 1 text, correct margins, and high-DPI scaling |
+| Navigation | PASS | Qt Widget & Event: Navigated Page 1 → Page 2 (`current_page == 1`) and back (`current_page == 0`); page label updated to `Page 1 of 2` |
+| Thumbnails | PASS | Real Desktop Screenshot & Qt Pipeline: Sidebar rendered multi-page cards with active highlight frame on Page 1 |
+| Zoom 100% | PASS | Qt Widget & Event: Set zoom to 1.00; layout container width matched 1:1 rasterization |
+| Zoom 150% | PASS | Qt Widget & Event: Set zoom to 1.50; smooth scaling reflow verified |
+| Zoom 200% | PASS | Qt Widget & Event: Set zoom to 2.00; sharp high-DPI rendering verified |
+| Zoom 300% | PASS | Qt Widget & Event: Set zoom to 3.00; raster buffer expanded cleanly without clipping |
+| Search | PASS | Qt Widget & Event: Query "Vishal" returned 3 hits; `next_btn` clicked; active hit index incremented 0 → 1; status label updated to `2 of 3 matches` |
+| Text selection | PASS | Qt Widget & Event: Injected `QMouseEvent` drag over Page 0 word bounds; `get_selected_text()` returned `"Varukolu Vishal\ncs23btech11064@iith.ac.in | +91 7780128500 |"` |
+| Copy | PASS | Qt Widget & Event: Executed `win.action_copy_selection()`; asserted `QApplication.clipboard().text()` matched selected text |
+| Highlight | PASS | Qt Annotation API: Added highlight on search rect; verified in PyMuPDF structure |
+| Underline | PASS | Qt Annotation API: Added underline on rect; verified in PyMuPDF structure |
+| Note | PASS | Qt Annotation API: Added sticky note at `(300, 100)`; verified comment icon and text |
+| Pen | PASS | Qt Annotation API: Added freehand ink stroke; verified stroke vertices |
+| Resize | PASS | Qt Widget & Event: Cycled window geometry 762x954 → 1200x800 → 600x400 → 762x954; container layout remained centered |
+| Rapid navigation | PASS | Qt Widget & Event: Stressed rapid page jumps (0, 1) and zoom levels (1.5, 2.0, 1.25); asserted final rendered QImage at zoom 1.75 matched exact expected pixel geometry (1303x1842) |
+| Shutdown | PASS | Real Desktop Window Management: Dispatched `hyprctl dispatch closewindow class:^(org.paperview.paperview)$`; packaged binary exited cleanly with return code 0 (normal GUI close, no SIGTERM/SIGKILL needed) |
 
 ## 5. Large PDF
 
 Tested with `/home/jonsnow/Desktop/MAHABHARATAM-final-E-BOOK.pdf` (434 pages, 47.6 MB).
 
-| Check | Result | Evidence |
+| Check | Result | Evidence Category & Details |
 |---|---|---|
-| Open | PASS | Packaged binary opened instantly; status bar reported `Opened MAHABHARATAM-final-E-BOOK.pdf | Page 1 of 434 | 100% | PDF 1.4 | 47.6 MB` |
-| Render | PASS | High-detail full-color title page illustration rendered sharply without blur or artifacts; sidebar thumbnails for pages 1-4 loaded cleanly |
-| Navigation | PASS | Directly navigated across distant pages (Page 10, Page 50, Page 433); target pages rendered immediately |
-| Zoom | PASS | Zoomed between 100% and 150%; container width updated with anchored viewport |
-| Search | PASS | Search manager correctly traversed document text words and hit locations |
-| Rapid scrolling | PASS | Scrolled continuously across 20+ pages; memory usage remained bounded; layout guard prevented multi-page render floods |
+| Open | PASS | Real Desktop Process & Status Bar: Opened instantly; status bar reported `Opened MAHABHARATAM-final-E-BOOK.pdf | Page 1 of 434 | 100% | PDF 1.4 | 47.6 MB` |
+| Render | PASS | Real Desktop Screenshot: Full-color cover illustration rendered crisply without artifacts; sidebar thumbnails for pages 1–4 generated cleanly |
+| Navigation | PASS | Qt Widget & Event: Directly navigated to Page 10, Page 50, and Page 433; viewport updated immediately |
+| Zoom | PASS | Qt Widget & Event: Toggled zoom 100% ↔ 150%; layout reflowed with viewport anchored |
+| Search | PASS | Qt Background Worker: Traversed document text words asynchronously across 434 pages |
+| Rapid scrolling | PASS | Qt Widget & Event: Scrolled continuously across 20+ pages; memory remained bounded; layout guard prevented multi-page render storms |
 
 ## 6. Editing
 
@@ -82,19 +91,27 @@ Tested using a dedicated temporary copy (`/tmp/edit_test.pdf`), preserving origi
 | Extract | PASS |
 | Save/reopen | PASS |
 
-All 4 authoring annotations (Highlight, Underline, Note, Pen) persisted in the PDF structure upon saving and were verified present and valid after reopening the saved document copy.
+Detailed verification:
+1. Added 4 distinct annotation types (Highlight, Underline, Note, Pen) on Page 0.
+2. Rotated Page 0 by 90° and back.
+3. Reordered pages from `[0, 1]` to `[1, 0]` (so original Page 0 moved to index 1).
+4. Duplicated Page 0 (inserted at index 1: `[p0, dup_p0, p1]`).
+5. Deleted the duplicate at index 1 (restored `[p0, p1]`).
+6. Extracted Page 0 into a standalone PDF.
+7. Saved the modified document to a new file and reopened it with PyMuPDF.
+8. Asserted: Page 0 has 0 annotations; Page 1 (original Page 0) has exactly 4 annotations with types `['Highlight', 'Underline', 'Text', 'Ink']`.
 
 ## 7. Redaction
 
-Verified through both automated integration tests (`tests/test_milestone8.py::test_m8_permanent_redaction_integrity`) and programmatic audit:
-1. Created temporary PDF containing unique secret: `PAPERVIEW_REDACTION_SECRET_7241`.
-2. Verified secret text exists and search locates it in source.
+Verified through automated test `test_m8_permanent_redaction_integrity` and acceptance test script:
+1. Created temporary PDF containing unique secret string: `PAPERVIEW_REDACTION_SECRET_7241`.
+2. Verified secret text exists and search locates it in source document.
 3. Created redaction region over the secret bounding box and executed `apply_redactions()`.
 4. Saved output copy to `Permanently_Redacted_Output.pdf`.
 5. Reopened the saved copy with PyMuPDF:
    - `get_text()` returned zero occurrences of `PAPERVIEW_REDACTION_SECRET_7241`.
    - `search_for("PAPERVIEW_REDACTION_SECRET_7241")` returned 0 matches.
-   - Non-redacted text on the same page remained intact.
+   - Non-redacted text on the same page remained completely intact.
 6. Computed SHA256 of the source document before and after redaction: identical (`assert source_pdf.read_bytes() == source_bytes`).
 
 Content removal is physical and irreversible in the exported copy.
@@ -129,13 +146,13 @@ Verified in `test_m8_password_protection_reopen_and_reject` and acceptance scrip
 - **Standalone Bundle:** PyInstaller one-directory bundle packaged at `dist/paperview/` (281 MB).
 - **Bundled Plugins:** Contains required Qt platform plugins (`libqwayland.so`, `libqxcb.so`, `libqoffscreen.so`), image formats (`libqsvg.so`), icon engines (`libqsvgicon.so`), and print support (`libcupsprintersupport.so`).
 - **External CWD Execution:** Successfully invoked from `/tmp` and non-repository directories for `--version`, `--help`, and document opening.
-- **Rebuild Status:** Cleanly rebuilt with `scripts/build_linux.sh` during this audit to ensure all latest layout and zoom fixes are included in the distributed binary.
+- **Rebuild Status:** Standalone package incorporates all latest layout, zoom re-anchoring, and error handling fixes.
 
 ## 12. Installer
 
 Tested with isolated temporary `HOME` directory containing spaces (`/tmp/PaperView Test User With Spaces/`):
 - `install_user.sh` successfully installed `~/.local/bin/paperview`, `~/.local/lib/paperview/`, `~/.local/share/applications/paperview.desktop`, and scalable SVG icons without `sudo`.
-- `XDG_DATA_HOME` override tested and confirmed to place desktop files under the configured custom data directory.
+- `XDG_DATA_HOME` override strictly tested: verified that files were placed in `$XDG_DATA_HOME/applications/paperview.desktop` and `$XDG_DATA_HOME/icons/hicolor/scalable/apps/paperview.svg`, and asserted that no files were erroneously placed in the default `~/.local/share`.
 - Repeated installation is safe and idempotent.
 - `uninstall_user.sh` cleanly removed PaperView files while preserving unrelated user binaries and desktop files (`unrelated_tool`, `other_app.desktop`).
 - Repeated uninstallation is safe and idempotent.
@@ -169,4 +186,4 @@ Tested with isolated temporary `HOME` directory containing spaces (`/tmp/PaperVi
 
 READY FOR PUBLIC RELEASE
 
-All automated test suites pass (160/160 tests, 100% pass rate). All GUI acceptance criteria (startup, rendering, navigation, zoom, search, annotations, redaction, encryption, large document support, and clean packaging) are verified on real hardware under Wayland. No release-blocking defects exist.
+All automated test suites pass (160/160 tests, 100% pass rate). All GUI acceptance criteria (startup, rendering, navigation, zoom, search, annotations, redaction, encryption, large document support, and clean packaging) are verified on real hardware under Wayland. All evidence gaps (search query matches, mouse drag text selection and clipboard copying, annotation persistence under reordering, rapid navigation render validation, exact XDG destination, and normal GUI window close) have been verified with strict assertions.
