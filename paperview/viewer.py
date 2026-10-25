@@ -6,7 +6,7 @@ annotation authoring (highlight, underline, notes, freehand ink), and view mode 
 
 from typing import Any, Dict, List, Optional, Tuple
 import pymupdf
-from PySide6.QtCore import QPoint, QRect, Qt, Signal, Slot
+from PySide6.QtCore import QPoint, QRect, Qt, QTimer, Signal, Slot
 from PySide6.QtGui import (
     QColor,
     QCursor,
@@ -740,11 +740,24 @@ class DocumentViewer(QScrollArea):
     def set_zoom(self, zoom: float) -> None:
         zoom = max(0.2, min(5.0, zoom))
         if abs(self.zoom - zoom) > 0.001:
+            anchor_page = self.current_page
             self.zoom = zoom
             for pw in self.page_widgets:
                 pw.set_zoom(self.zoom)
             self._update_container_width()
             self.zoom_changed.emit(self.zoom)
+            # Re-anchor the viewport to the page the user was viewing. Without
+            # this, a zoom-induced layout reflow can leave current_page outside
+            # the visible range, so the viewport renders other pages while
+            # current_page keeps a stale image (page label desync).
+            if 0 <= anchor_page < len(self.page_widgets):
+                def _reanchor() -> None:
+                    # Only apply if neither the page nor the zoom changed since
+                    # this request was scheduled (rapid zoom + navigation must
+                    # not be dragged back to an older page).
+                    if self.current_page == anchor_page and abs(self.zoom - zoom) < 0.001:
+                        self.scroll_to_page(anchor_page)
+                QTimer.singleShot(0, _reanchor)
 
     def zoom_in(self) -> None:
         self.set_zoom(self.zoom * 1.25)

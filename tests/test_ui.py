@@ -102,6 +102,37 @@ def test_main_window_open_and_navigation(qapp):
     win.close()
 
 
+def test_zoom_reanchors_current_page_after_zoom(qapp):
+    """Regression: a zoom reflow must keep the viewed page in the visible range.
+
+    Previously, zooming deep inside a long document shifted the scroll mapping
+    so that current_page fell outside the visible range: the viewport rendered
+    other pages on fresh requests, while the current page kept its old,
+    upscaled image and the page counter/thumbnails stayed on the old page.
+    """
+    from PySide6.QtTest import QTest
+
+    viewer = DocumentViewer()
+    viewer.resize(800, 600)
+    viewer.show()
+    viewer.set_document(page_count=40, page_dimensions=[(595.0, 842.0)] * 40)
+    qapp.processEvents()
+
+    viewer.scroll_to_page(25)
+    qapp.processEvents()
+    assert viewer.current_page == 25
+
+    for zoom in (2.5, 0.5, 1.5):
+        viewer.set_zoom(zoom)
+        QTest.qWait(30)
+        qapp.processEvents()
+        lo, hi = viewer.get_visible_page_range()
+        assert lo <= viewer.current_page <= hi, (
+            f"zoom {zoom}: current_page={viewer.current_page} outside visible range {(lo, hi)}")
+
+    viewer.close()
+
+
 def test_icons_provider(qapp):
     from paperview.icons import get_icon
     for name in ["open", "save", "prev", "next", "zoom_in", "zoom_out", "fit_width", "fit_page", "find", "properties", "close"]:

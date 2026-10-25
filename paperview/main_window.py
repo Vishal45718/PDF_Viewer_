@@ -1645,6 +1645,14 @@ class MainWindow(QMainWindow):
         if not self.doc_mgr.is_open:
             return
 
+        # Before the window is first shown, page geometry is not laid out yet:
+        # widget y() values are meaningless, so get_visible_page_range() can
+        # report almost every page as visible and trigger hundreds of renders
+        # (huge memory spike and slow open on large documents). The show and
+        # resize events request the correct range once layout is valid.
+        if not self.viewer.isVisible():
+            return
+
         start_page, end_page = self.viewer.get_visible_page_range()
         zoom = self.viewer.zoom
         dpr = float(self.devicePixelRatioF()) if hasattr(self, "devicePixelRatioF") else float(self.devicePixelRatio())

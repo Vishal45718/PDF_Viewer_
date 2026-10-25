@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 import pymupdf
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 from paperview.document import (
     DocumentError,
@@ -325,7 +325,7 @@ def test_source_file_integrity_and_safeguards(tmp_path):
     assert orig_hash == after_hash, "Original source file was modified!"
 
 
-def test_ui_organize_pages_dialog_interaction(qapp, tmp_path):
+def test_ui_organize_pages_dialog_interaction(qapp, tmp_path, monkeypatch):
     """Verifies OrganizePagesDialog user workflow, item manipulation, and reload callback."""
     win = MainWindow(SAMPLE_RESUME)
     initial_count = win.doc_mgr.page_count
@@ -360,6 +360,11 @@ def test_ui_organize_pages_dialog_interaction(qapp, tmp_path):
     assert win.page_total_label.text() == f"/ {initial_count + 1}"
     assert win.doc_mgr.is_modified is True
 
+    monkeypatch.setattr(
+        QMessageBox,
+        "question",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Discard,
+    )
     win.close()
 
 

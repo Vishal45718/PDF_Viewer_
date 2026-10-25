@@ -50,7 +50,7 @@ from typing import List, Tuple
 import pytest
 import pymupdf
 from PySide6.QtCore import Qt, QPoint
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 from paperview.document import (
     DocumentError,
@@ -725,7 +725,7 @@ def test_26_multiple_stamps_and_multi_page(form_pdf: Path):
 # 5. UI INTEGRATION & DIALOGS TESTS (27 - 31)
 # =============================================================================
 
-def test_27_ui_form_viewer_dialog_workflow(qapp, form_pdf: Path):
+def test_27_ui_form_viewer_dialog_workflow(qapp, form_pdf: Path, monkeypatch):
     """Verifies FormViewerDialog populates fields and allows editing."""
     win = MainWindow(str(form_pdf))
     try:
@@ -743,10 +743,15 @@ def test_27_ui_form_viewer_dialog_workflow(qapp, form_pdf: Path):
         applicant = next(f for f in fields if f["field_name"] == "applicant_name")
         assert applicant["value"] == "Dialog Edited Name"
     finally:
+        monkeypatch.setattr(
+            QMessageBox,
+            "question",
+            lambda *args, **kwargs: QMessageBox.StandardButton.Discard,
+        )
         win.close()
 
 
-def test_28_ui_redaction_dialog_workflow(qapp, redact_pdf: Path):
+def test_28_ui_redaction_dialog_workflow(qapp, redact_pdf: Path, monkeypatch):
     """Verifies RedactionDialog lists pending redactions and can apply them."""
     win = MainWindow(str(redact_pdf))
     try:
@@ -764,10 +769,15 @@ def test_28_ui_redaction_dialog_workflow(qapp, redact_pdf: Path):
         assert len(applied_called) == 1
         assert "SECRET_SSN" not in win.doc_mgr.doc[0].get_text()
     finally:
+        monkeypatch.setattr(
+            QMessageBox,
+            "question",
+            lambda *args, **kwargs: QMessageBox.StandardButton.Discard,
+        )
         win.close()
 
 
-def test_29_ui_signature_dialog_interaction(qapp, form_pdf: Path):
+def test_29_ui_signature_dialog_interaction(qapp, form_pdf: Path, monkeypatch):
     """Verifies SignatureDialog presets, non-crypto disclaimer, and placement."""
     win = MainWindow(str(form_pdf))
     try:
@@ -786,10 +796,15 @@ def test_29_ui_signature_dialog_interaction(qapp, form_pdf: Path):
         assert len(sigs) == 1
         assert sigs[0]["signer"] == "UI Test Signer"
     finally:
+        monkeypatch.setattr(
+            QMessageBox,
+            "question",
+            lambda *args, **kwargs: QMessageBox.StandardButton.Discard,
+        )
         win.close()
 
 
-def test_30_ui_stamp_dialog_interaction(qapp, form_pdf: Path):
+def test_30_ui_stamp_dialog_interaction(qapp, form_pdf: Path, monkeypatch):
     """Verifies StampDialog options, position presets, and placement."""
     win = MainWindow(str(form_pdf))
     try:
@@ -806,6 +821,11 @@ def test_30_ui_stamp_dialog_interaction(qapp, form_pdf: Path):
         assert len(stamps) == 1
         assert stamps[0]["name"] == "Approved"
     finally:
+        monkeypatch.setattr(
+            QMessageBox,
+            "question",
+            lambda *args, **kwargs: QMessageBox.StandardButton.Discard,
+        )
         win.close()
 
 
