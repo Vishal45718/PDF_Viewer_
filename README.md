@@ -327,11 +327,11 @@ mkdir -p /tmp/paperview_smoke_test
 cd /tmp/paperview_smoke_test
 
 # Test version and help flags
-/home/jonsnow/Desktop/pdf_viewer/dist/paperview/paperview --version
-/home/jonsnow/Desktop/pdf_viewer/dist/paperview/paperview --help
+/path/to/dist/paperview/paperview --version
+/path/to/dist/paperview/paperview --help
 
 # Test opening a PDF located outside the repository
-/home/jonsnow/Desktop/pdf_viewer/dist/paperview/paperview "/tmp/some_document with spaces.pdf"
+/path/to/dist/paperview/paperview "/tmp/some_document with spaces.pdf"
 ```
 
 ### 6. Known Platform Limitations
@@ -394,7 +394,7 @@ Before release, verify:
    ```
    Must pass with 0 errors.
 5. **Sharp Text at 100% Zoom**:
-   Launch `./run.sh ~/Desktop/Resume_CV.pdf` and confirm text glyphs are sharp, crisp, and high-contrast at 100% zoom.
+   Launch `./run.sh [path/to/sample.pdf]` and confirm text glyphs are sharp, crisp, and high-contrast at 100% zoom.
 6. **Smooth Zooming**:
    Zoom in to 150% and 200% and zoom out to 75% and 50%; verify rendering refreshes crisply without blurring.
 7. **Window Resizing**:
@@ -417,6 +417,10 @@ All **160 tests** across all 8 milestones (core viewing, text selection & annota
 
 ---
 
-## Licensing Gate Notice
+## Licensing & Distribution
 
-See [LICENSE_NOTES.md](file:///home/jonsnow/Desktop/pdf_viewer/LICENSE_NOTES.md) for full licensing details regarding PyMuPDF's AGPLv3 obligations. PaperView must not be distributed as closed-source proprietary software without obtaining a commercial license from Artifex Software, Inc.
+PaperView is open-source software licensed under the **GNU Affero General Public License v3 (AGPLv3)**. The complete license text is available in the root [LICENSE](LICENSE) file.
+
+- **PyMuPDF / MuPDF**: Incorporates MuPDF (Artifex Software, Inc.), licensed under the GNU AGPLv3. Standalone binaries and public deployments must provide complete corresponding machine-readable source code under GNU AGPLv3 (§6).
+- **PySide6 / Qt**: Licensed under GNU LGPLv3. Dynamic shared libraries (`.so`) are bundled in standalone packages to allow users to inspect and replace them.
+- For detailed licensing information, third-party notices, and source-distribution obligations, see [LICENSE_NOTES.md](LICENSE_NOTES.md).

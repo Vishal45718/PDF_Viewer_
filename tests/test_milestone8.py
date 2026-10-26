@@ -34,8 +34,8 @@ import time
 from pathlib import Path
 import pytest
 import pymupdf
-from PySide6.QtCore import QPoint, Qt
-from PySide6.QtGui import QIcon, QImage
+from PySide6.QtCore import QPoint, QPointF, Qt
+from PySide6.QtGui import QIcon, QImage, QMouseEvent
 from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog, QLabel
 
 import paperview
@@ -552,6 +552,56 @@ def test_m8_gui_startup_render_nav_zoom_search_and_shutdown(qtbot, sample_test_p
     win.search_bar.next_btn.click()
     assert len(win.search_mgr.hits) >= 0
 
-    # 6. Shutdown
+    # 6. Text Selection & Clipboard Copy (Synthetic PDF with dummy text)
+    win.viewer.set_tool_mode("select")
+    pw = win.viewer.page_widgets[0]
+    win._request_visible_pages()
+    qapp = QApplication.instance()
+    if qapp:
+        qapp.processEvents()
+
+    assert len(pw.words) > 0, "Words should be extracted for synthetic page"
+    w0 = pw.words[0]
+    zoom = pw.zoom
+    p_start = QPoint(int(w0[0] * zoom + 8), int(w0[1] * zoom + 8))
+    p_end = QPoint(int(w0[2] * zoom + 12), int(w0[3] * zoom + 8))
+
+    press_ev = QMouseEvent(
+        QMouseEvent.Type.MouseButtonPress,
+        QPointF(p_start),
+        Qt.MouseButton.LeftButton,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    pw.mousePressEvent(press_ev)
+
+    move_ev = QMouseEvent(
+        QMouseEvent.Type.MouseMove,
+        QPointF(p_end),
+        Qt.MouseButton.NoButton,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    pw.mouseMoveEvent(move_ev)
+
+    release_ev = QMouseEvent(
+        QMouseEvent.Type.MouseButtonRelease,
+        QPointF(p_end),
+        Qt.MouseButton.LeftButton,
+        Qt.MouseButton.NoButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    pw.mouseReleaseEvent(release_ev)
+
+    selected_text = win.viewer.get_selected_text()
+    assert len(selected_text.strip()) > 0, "Selected text should not be empty"
+    assert w0[4] in selected_text, f"Selected text should contain word '{w0[4]}'"
+
+    clipboard = QApplication.clipboard()
+    clipboard.clear()
+    win.action_copy_selection()
+    assert clipboard.text() == selected_text, "Clipboard must match selected text"
+
+    # 7. Shutdown
     win.close()
     assert not win.isVisible()

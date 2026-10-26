@@ -16,11 +16,6 @@ def main() -> None:
 
     # Optional file argument from command line
     initial_file = sys.argv[1] if len(sys.argv) > 1 else None
-    if not initial_file:
-        # Default to Resume_CV.pdf if present for smooth initial preview
-        sample_path = Path.home() / "Desktop" / "Resume_CV.pdf"
-        if sample_path.exists():
-            initial_file = str(sample_path)
 
     window = MainWindow(initial_file=initial_file)
     window.show()

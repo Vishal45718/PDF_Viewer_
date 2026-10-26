@@ -95,6 +95,7 @@ $PYTHON -m PyInstaller \
     --icon "$PROJECT_ROOT/packaging/icons/paperview-256x256.png" \
     --add-data "$PROJECT_ROOT/packaging:packaging" \
     --add-data "$PROJECT_ROOT/LICENSE_NOTES.md:." \
+    --add-data "$PROJECT_ROOT/LICENSE:." \
     --hidden-import PySide6.QtSvg \
     --hidden-import PySide6.QtPrintSupport \
     --hidden-import fitz \

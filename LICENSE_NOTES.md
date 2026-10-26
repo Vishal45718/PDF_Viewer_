@@ -1,6 +1,8 @@
-# Licensing Notes for PaperView
+w# Licensing Notes for PaperView
 
 ## Overview
+PaperView is open-source software licensed under the **GNU Affero General Public License v3 (AGPLv3)**. See the root [LICENSE](LICENSE) file for the complete license text.
+
 PaperView is built using:
 1. **PySide6**: The official Python binding for the Qt cross-platform application framework.
    - Licensed under the **LGPLv3** (GNU Lesser General Public License version 3) and commercial licenses from The Qt Company.
